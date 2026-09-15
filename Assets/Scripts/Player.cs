@@ -13,6 +13,9 @@ public class Player : NetworkBehaviour
     [SerializeField] private float speed = 5f;
     [SerializeField] private float jumpImpulse = 10f;
 
+    public bool IsReady;
+
+    [Networked] public string Name { get; private set; }
     [Networked] private NetworkButtons PreviousButtons { get; set; }
 
     public override void Spawned()
@@ -21,18 +24,20 @@ public class Player : NetworkBehaviour
 
         if (HasInputAuthority)
         {
-            foreach(MeshRenderer renderer in modelParts)
+            foreach (MeshRenderer renderer in modelParts)
             {
                 renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
             }
-
+            Runner.GetComponent<InputManager>().LocalPlayer = this;
+            Name = PlayerPrefs.GetString("Photon.Menu.Username");
+            RPC_PlayerName(Name);
             CameraFollow.Singleton.SetTarget(camTarget);
         }
     }
 
     public override void FixedUpdateNetwork()
     {
-        if(GetInput(out NetInput input))
+        if (GetInput(out NetInput input))
         {
             kcc.AddLookRotation(input.LookDelta * lookSensitivy);
             UpdateCamTarget();
@@ -55,5 +60,25 @@ public class Player : NetworkBehaviour
     private void UpdateCamTarget()
     {
         camTarget.localRotation = Quaternion.Euler(kcc.GetLookRotation().x, 0f, 0f);
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.InputAuthority | RpcTargets.StateAuthority)]
+    public void RPC_SetReady()
+    {
+        IsReady = true;
+        if (HasInputAuthority)
+            UIManager.Singleton.DidSetReady();
+    }
+
+    public void Teleport(Vector3 position, Quaternion rotation)
+    {
+        kcc.SetPosition(position);
+        kcc.SetLookRotation(rotation);
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void RPC_PlayerName(string name)
+    {
+        Name = name;
     }
 }

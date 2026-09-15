@@ -13,6 +13,8 @@ using UnityEngine.InputSystem;
 
 public class InputManager : SimulationBehaviour, IBeforeUpdate, INetworkRunnerCallbacks
 {
+    public Player LocalPLayer;
+
     private NetInput accumulatedInput;
     private bool resetInput;
 
@@ -55,6 +57,9 @@ public class InputManager : SimulationBehaviour, IBeforeUpdate, INetworkRunnerCa
 
         if (keyboard != null)
         {
+            if (keyboard.rKey.wasPressedThisFrame && LocalPLayer != null)
+                LocalPLayer.RPC_SetReady();
+
             Vector2 moveDirection = Vector2.zero;
             if (keyboard.wKey.isPressed)
                 moveDirection += Vector2.up;
