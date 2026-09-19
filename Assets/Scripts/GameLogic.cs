@@ -1,6 +1,8 @@
 using Fusion;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public enum GameState
@@ -15,13 +17,15 @@ public class GameLogic : NetworkBehaviour, IPlayerJoined, IPlayerLeft
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private Transform spawnPointPivot;
     [Networked] private Player Winner { get; set; }
-    [Networked] private GameState state { get; set; }
+    [Networked, OnChangedRender(nameof(GameStateChanged))] private GameState State { get; set; }
     [Networked, Capacity(12)] private NetworkDictionary<PlayerRef, Player> Players => default;
 
     public override void Spawned()
     {
         Winner = null;
-        state = GameState.Waiting;
+        State = GameState.Waiting;
+        UIManager.Singleton.SetWaitUI(State, Winner);
+        Runner.SetIsSimulated(Object, true);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -31,31 +35,44 @@ public class GameLogic : NetworkBehaviour, IPlayerJoined, IPlayerLeft
         {
             UnreadyAll();
             Winner = player;
-            state = GameState.Waiting;
+            State = GameState.Waiting;
         }
     }
 
     public override void FixedUpdateNetwork()
     {
         if (Players.Count < 1)
-        return;
+            return;
 
-        bool areAllReady = true;
-        foreach (KeyValuePair<PlayerRef, Player> player in Players)
+        if (Runner.IsServer && State == GameState.Waiting)
         {
-            if (!player.Value.IsReady)
+            bool areAllReady = true;
+            foreach (KeyValuePair<PlayerRef, Player> player in Players)
             {
-                areAllReady = false;
-                break;
+                if (!player.Value.IsReady)
+                {
+                    areAllReady = false;
+                    break;
+                }
+            }
+
+            if (areAllReady)
+            {
+                Winner = null;
+                State = GameState.Playing;
+                PreparePlayers();
             }
         }
 
-        if (areAllReady)
+        if(State == GameState.Playing && !Runner.IsResimulation)
         {
-            Winner = null;
-            state = GameState.Playing;
-            PreparePlayers();
+            UIManager.Singleton.UpdateLeaderboard(Players.OrderByDescending(p => p.Value).ToArray());
         }
+    }
+
+    private void GameStateChanged()
+    {
+        UIManager.Singleton.SetWaitUI(State, Winner);
     }
 
     private void PreparePlayers()
@@ -66,18 +83,19 @@ public class GameLogic : NetworkBehaviour, IPlayerJoined, IPlayerLeft
         {
             GetNextSpawnPoint(spacingAngle, out Vector3 position, out Quaternion rotation);
             player.Value.Teleport(position, rotation);
+            player.Value.ResetCooldowns();
         }
     }
 
     private void UnreadyAll()
     {
-        foreach(KeyValuePair<PlayerRef, Player> player in Players)
+        foreach (KeyValuePair<PlayerRef, Player> player in Players)
         {
             player.Value.IsReady = false;
         }
     }
 
-    private void GetNextSpawnPoint(float spacingAngle, out Vector3 position,  out Quaternion rotation)
+    private void GetNextSpawnPoint(float spacingAngle, out Vector3 position, out Quaternion rotation)
     {
         position = spawnPoint.position;
         rotation = spawnPoint.rotation;
@@ -86,8 +104,12 @@ public class GameLogic : NetworkBehaviour, IPlayerJoined, IPlayerLeft
 
     public void PlayerJoined(PlayerRef player)
     {
-        NetworkObject playerObject = Runner.Spawn(playerPrefab, Vector3.up, Quaternion.identity, player);
-        Players.Add(player, playerObject.GetComponent<Player>());
+        if (HasStateAuthority)
+        {
+            GetNextSpawnPoint(90f, out Vector3 position, out Quaternion rotation);
+            NetworkObject playerObject = Runner.Spawn(playerPrefab, Vector3.up, Quaternion.identity, player);
+            Players.Add(player, playerObject.GetComponent<Player>());
+        }
     }
 
     public void PlayerLeft(PlayerRef player)

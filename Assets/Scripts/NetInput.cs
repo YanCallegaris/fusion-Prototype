@@ -4,6 +4,8 @@ using UnityEngine;
 public enum InputButton
 {
     Jump,
+    Grapple,
+    Glide,
 }
 
 public struct NetInput : INetworkInput

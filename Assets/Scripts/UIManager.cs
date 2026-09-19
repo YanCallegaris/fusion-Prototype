@@ -1,7 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -27,10 +30,32 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI gameStateText;
     [SerializeField] private TextMeshProUGUI instructionText;
+    [SerializeField] private Slider grappleCD;
+    [SerializeField] private Slider glideCD;
+    [SerializeField] private Image glideActive;
+    [SerializeField] private Slider doubleJumpCD;
+    [SerializeField] private LeaderboardItems[] leaderboardItems;
+
+    public Player LocalPlayer;
 
     private void Awake()
     {
         Singleton = this;
+
+        grappleCD.value = 0f;
+        glideCD.value = 0f;
+        doubleJumpCD.value = 0f;
+    }
+
+    private void Update()
+    {
+        if (LocalPlayer == null)
+            return;
+        grappleCD.value = LocalPlayer.GrappleCDFactor;
+        doubleJumpCD.value = LocalPlayer.DoubleJumpCDFactor;
+
+        glideActive.enabled = LocalPlayer.IsGliding;
+        glideCD.value = LocalPlayer.IsGliding ? LocalPlayer.GlideCharge : LocalPlayer.GlideCDFactor;
     }
 
     private void OnDestroy()
@@ -62,5 +87,25 @@ public class UIManager : MonoBehaviour
 
         gameStateText.enabled = newState == GameState.Waiting;
         instructionText.enabled = newState == GameState.Waiting;
+    }
+
+    public void UpdateLeaderboard(KeyValuePair<Fusion.PlayerRef, Player>[] players)
+    {
+        for (int i = 0; i < leaderboardItems.Length; i++)
+        {
+            LeaderboardItems item = leaderboardItems[i];
+            if(i < players.Length)
+            {
+                item.nameText.text = players[i].Value.Name;
+                item.heightText.text = $"{players[i].Value.Score}m";
+            }
+        }
+    }
+
+    [Serializable]
+    private struct LeaderboardItems
+    {
+        public TextMeshProUGUI nameText;
+        public TextMeshProUGUI heightText;
     }
 }
