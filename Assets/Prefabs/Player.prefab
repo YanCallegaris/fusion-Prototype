@@ -794,6 +794,9 @@ GameObject:
   - component: {fileID: 5727191978476532940}
   - component: {fileID: 1478999945423057820}
   - component: {fileID: 7100527885134523882}
+  - component: {fileID: 8077531354755831631}
+  - component: {fileID: 6814972970282034693}
+  - component: {fileID: 7109977641251222236}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -836,6 +839,7 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 1478999945423057820}
   - {fileID: 7100527885134523882}
+  - {fileID: 8077531354755831631}
 --- !u!54 &5727191978476532940
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -883,24 +887,35 @@ MonoBehaviour:
   - {fileID: 3208298448284846645}
   - {fileID: 5271234934346940701}
   - {fileID: 8799478614307836382}
+  lagCompLayers:
+    serializedVersion: 2
+    m_Bits: 1
   kcc: {fileID: 7100527885134523882}
   glideProcessor: {fileID: 4219866145273439913, guid: 2be9e40b4ba87364189e0e3f0d093498,
     type: 3}
   camTarget: {fileID: 4777811529736342243}
   source: {fileID: 5283944797590942374}
+  shoveSound: {fileID: 8300000, guid: e99afd01e3d183d42a4e2389b59c8e89, type: 3}
+  cagePrefab: {fileID: 6056137977910690832, guid: b7f032a4b8c9da14e8c7969e119ac84d,
+    type: 3}
   maxPitch: 85
   lookSensitivy: 0.15
   jumpImpulse: {x: 0, y: 10, z: 0}
   doubleJumpMultiplayer: 0.75
+  breakBlockCD: 1.25
+  cageCD: 10
+  shoveCD: 2
   grappleCD: 2
   glideCD: 20
   doubleJumpCD: 5
+  shoveStrength: 20
   grappleStrengh: 12
   maxGlideTime: 2
   IsReady: 0
   _Name: 
   _GlideCharge: 0
   _IsGliding: 0
+  _IsCaged: 0
 --- !u!114 &7100527885134523882
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -942,6 +957,58 @@ MonoBehaviour:
     ForceSingleOverlapQuery: 0
     ForcePredictedLookRotation: 0
     SuppressConvexMeshColliders: 0
+--- !u!114 &8077531354755831631
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9040168462585498880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1039544458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Config: 3
+  BroadRadius: 0.9
+  Offset: {x: 0, y: 0.9, z: 0}
+  GizmosColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  Hitboxes:
+  - {fileID: 6814972970282034693}
+--- !u!114 &6814972970282034693
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9040168462585498880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.35
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 1.8
+  Offset: {x: 0, y: 0.9, z: 0}
+  Root: {fileID: 8077531354755831631}
+  GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+--- !u!114 &7109977641251222236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9040168462585498880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3753c305b7889346b49860c7fc56eb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  highlight: {fileID: 2100000, guid: 9b8474a1396a6be47bef7ace3ac2502b, type: 2}
+  meshRenderer: {fileID: 3410509747022642841}
 --- !u!1001 &4218172695574425155
 PrefabInstance:
   m_ObjectHideFlags: 0

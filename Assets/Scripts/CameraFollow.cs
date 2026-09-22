@@ -15,7 +15,7 @@ public class CameraFollow : MonoBehaviour
             }
             else if (_singleton == null)
                 _singleton = value;
-            else if(_singleton != value)
+            else if (_singleton != value)
             {
                 Destroy(value);
                 Debug.LogError($"There should only ever be one instance of {nameof(CameraFollow)}!");
@@ -23,8 +23,10 @@ public class CameraFollow : MonoBehaviour
         }
     }
     private static CameraFollow _singleton;
+    [SerializeField] private Highlighter highlighter;
 
     private Transform target;
+    private Player player;
 
     private void Awake()
     {
@@ -33,18 +35,24 @@ public class CameraFollow : MonoBehaviour
 
     private void OnDestroy()
     {
-        if(Singleton == this)
+        if (Singleton == this)
             Singleton = null;
     }
 
     private void LateUpdate()
     {
-        if(target != null)
+        if (target != null)
+        {
             transform.SetPositionAndRotation(target.position, target.rotation);
+
+            if (player != null)
+                highlighter.UpdateHighlightable(transform.position, transform.forward, player);
+        }
     }
 
-    public void SetTarget(Transform newTarget)
+    public void SetTarget(Transform newTarget, Player player)
     {
         target = newTarget;
+        this.player = player;
     }
 }
